@@ -40,11 +40,7 @@ export function LanguageSwitcher({ className = "" }: { className?: string }) {
   const { locale, locales, setLocale } = useI18n();
   return (
     <div className={`language-switcher ${className}`}>
-      <select
-        value={locale}
-        onChange={(e) => setLocale(e.target.value)}
-        aria-label="Language"
-      >
+      <select value={locale} onChange={(e) => setLocale(e.target.value)} aria-label="Language">
         {locales.map((code) => (
           <option key={code} value={code}>
             {code}
@@ -73,9 +69,7 @@ export function EnvSetupScreen({ errors }: { errors: string[] }) {
             </li>
           ))}
         </ul>
-        <p className={styles.fineprint}>
-          {t("env.setupDetails")}
-        </p>
+        <p className={styles.fineprint}>{t("env.setupDetails")}</p>
       </div>
     </div>
   );
@@ -89,7 +83,13 @@ export function LiveRegion({ message }: { message: string }) {
       aria-live="polite"
       aria-atomic="true"
       className="sr-only"
-      style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0,0,0,0)" }}
+      style={{
+        position: "absolute",
+        width: 1,
+        height: 1,
+        overflow: "hidden",
+        clip: "rect(0,0,0,0)",
+      }}
     >
       {message}
     </div>

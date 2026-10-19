@@ -209,7 +209,8 @@ export function useCircleFlow() {
   const [prevCircle] = useState<{ id: string; explorerUrl: string } | null>(null);
 
   useEffect(() => {
-    const saved = typeof sessionStorage !== "undefined" ? sessionStorage.getItem("sharibo_demo_state") : null;
+    const saved =
+      typeof sessionStorage !== "undefined" ? sessionStorage.getItem("sharibo_demo_state") : null;
     if (saved) {
       try {
         const parsed = JSON.parse(saved, reviver);
@@ -283,7 +284,13 @@ export function useCircleFlow() {
       try {
         setBusy("Checking member eligibility…");
         const client = await import("@sharibo/client");
-        const { computeExternalNullifier, computeNullifierHash, connect, hasClaimed, makeNullifierHash } = client;
+        const {
+          computeExternalNullifier,
+          computeNullifierHash,
+          connect,
+          hasClaimed,
+          makeNullifierHash,
+        } = client;
         const external = await computeExternalNullifier(circleId, BigInt(round));
         const adminClient = await connect(NETWORK, admin);
         const results = await Promise.all(
@@ -403,8 +410,13 @@ export function useCircleFlow() {
         import("@stellar/stellar-sdk"),
         import("@sharibo/client"),
       ]);
-      const { generateIdentity, MerkleTree: Tree, verificationKeyToContractFormat, connect, createCircle } =
-        client;
+      const {
+        generateIdentity,
+        MerkleTree: Tree,
+        verificationKeyToContractFormat,
+        connect,
+        createCircle,
+      } = client;
 
       setBusy(t("busy.generating"));
       const adminKp = SdkKeypair.random();
@@ -696,7 +708,8 @@ export function useCircleFlow() {
   }
 
   async function doClaim() {
-    if (state.status !== "readyToClaim" || !view.admin || !view.tree || view.circleId === null) return;
+    if (state.status !== "readyToClaim" || !view.admin || !view.tree || view.circleId === null)
+      return;
     dispatch({
       type: "beginProve",
       busy: "Proving… (a real Groth16 proof is being generated in your browser)",

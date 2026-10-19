@@ -6,7 +6,7 @@ import {
   isAllowed,
   getAddress,
   getNetworkDetails,
-  signTransaction as freighterSignTx
+  signTransaction as freighterSignTx,
 } from "@stellar/freighter-api";
 import {
   generateIdentity,
@@ -84,7 +84,10 @@ const TOKEN = config?.testTokenContractId ?? "";
 const LEVELS = TREE_LEVELS;
 const CIRCLE_SIZE = 5;
 
-function toUiError(error: unknown, t: (key: string, vars?: Record<string, string | number>) => string): string {
+function toUiError(
+  error: unknown,
+  t: (key: string, vars?: Record<string, string | number>) => string,
+): string {
   if (error instanceof FriendbotRetryableError) {
     return FRIEND_BOT_RATE_LIMIT_MESSAGE;
   }
@@ -147,7 +150,6 @@ function getErrorMessage(error: unknown): string {
   }
   return describeError(error);
 }
-
 
 // Every truncated value on screen (addresses, tx hashes) needs to be
 // pasteable in full somewhere else — a CLI call, an explorer search — so
@@ -290,12 +292,7 @@ function CopyDebugBundleButton({
         {label}
       </button>
       {(status === "copied" || status === "fallback") && (
-        <a
-          className="link fineprint"
-          href={BUG_REPORT_URL}
-          target="_blank"
-          rel="noreferrer"
-        >
+        <a className="link fineprint" href={BUG_REPORT_URL} target="_blank" rel="noreferrer">
           open bug report ↗
         </a>
       )}
@@ -367,9 +364,9 @@ function ClaimProgress({ stage, elapsedSeconds }: { stage: ClaimStage; elapsedSe
       </div>
       {stage === "proving" && (
         <p className={styles.techline}>
-          <span className={styles.spinner} aria-hidden="true" /> Groth16 · BLS12-381 · 3,757 constraints ·
-          proving locally in your browser, nothing sent anywhere until the proof is done ·{" "}
-          {elapsedSeconds}s elapsed
+          <span className={styles.spinner} aria-hidden="true" /> Groth16 · BLS12-381 · 3,757
+          constraints · proving locally in your browser, nothing sent anywhere until the proof is
+          done · {elapsedSeconds}s elapsed
         </p>
       )}
     </div>
@@ -428,7 +425,13 @@ function useRingRadius(): number {
   return radius;
 }
 
-function MemberRing({ members, revealed }: { members: { funded: boolean; pending?: boolean }[]; revealed: boolean }) {
+function MemberRing({
+  members,
+  revealed,
+}: {
+  members: { funded: boolean; pending?: boolean }[];
+  revealed: boolean;
+}) {
   const { t } = useI18n();
   const radius = useRingRadius();
   const fundedCount = members.filter((m) => m.funded).length;
@@ -495,9 +498,7 @@ function ClaimExplainer() {
       <div className={styles.claimExplainerBody}>
         <section>
           <h3>{t("explainer.sayingTitle")}</h3>
-          <p>
-            {t("explainer.sayingBody")}
-          </p>
+          <p>{t("explainer.sayingBody")}</p>
         </section>
         <section>
           <h3>{t("explainer.secretTitle")}</h3>
@@ -562,7 +563,9 @@ export default function CircleScreen({ initialState = null, onExit }: CircleScre
   const [hasFreighter, setHasFreighter] = useState(false);
 
   useEffect(() => {
-    isConnected().then((res) => setHasFreighter(res.isConnected)).catch(() => setHasFreighter(false));
+    isConnected()
+      .then((res) => setHasFreighter(res.isConnected))
+      .catch(() => setHasFreighter(false));
   }, []);
   const [round, setRound] = useState(0);
   const [pot, setPot] = useState(0n);
@@ -623,13 +626,13 @@ export default function CircleScreen({ initialState = null, onExit }: CircleScre
       const { connect, getCircle } = await import("@sharibo/client");
       const adminClient = await connect(NETWORK, admin);
       const circle = await getCircle(adminClient, circleId);
-      
+
       setPot(circle.pot);
       setOnChainContributors(circle.contributors);
       setCancelled(circle.cancelled);
       setFeeBps(circle.fee_bps ?? 0);
       setFeeRecipient(circle.fee_recipient ?? "");
-      
+
       // Update member funded status based on on-chain contributors
       setMembers((prev) =>
         prev.map((m) => {
@@ -637,7 +640,7 @@ export default function CircleScreen({ initialState = null, onExit }: CircleScre
             circle.contributors.includes(m.keypair.publicKey()) ||
             Boolean(m.freighterKey && circle.contributors.includes(m.freighterKey));
           return { ...m, funded: hasFunded, pending: false };
-        })
+        }),
       );
     } catch (e) {
       console.error("Failed to sync funding state:", e);
@@ -713,7 +716,7 @@ export default function CircleScreen({ initialState = null, onExit }: CircleScre
       payoutHeadingRef.current?.focus();
     }
   }, [claimResult]);
-  
+
   // When the claim step becomes available, pre-check each member's nullifier
   // against `has_claimed` so we can mark ineligible members immediately
   // (avoids generating a slow proof only to be rejected on-chain).
@@ -734,7 +737,13 @@ export default function CircleScreen({ initialState = null, onExit }: CircleScre
           }),
         );
         if (!mounted) return;
-        setMembers((prev) => prev.map((m, i) => ({ ...m, ineligible: results[i], ineligibleReason: results[i] ? "Already claimed in this circle" : undefined })));
+        setMembers((prev) =>
+          prev.map((m, i) => ({
+            ...m,
+            ineligible: results[i],
+            ineligibleReason: results[i] ? "Already claimed in this circle" : undefined,
+          })),
+        );
       } catch (e) {
         setError(toUiError(e, t));
       } finally {
@@ -742,7 +751,9 @@ export default function CircleScreen({ initialState = null, onExit }: CircleScre
       }
     }
     checkEligibility();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [fullyFunded, claimResult, circleId, round, admin]);
   // ────────────────────────────────────────────────────────────────────────
 
@@ -806,7 +817,7 @@ export default function CircleScreen({ initialState = null, onExit }: CircleScre
     setCirclePhase("loading");
     setContributionXlm(parsed.contributionXlm);
     setAdmin(Keypair.fromSecret(parsed.adminSecret));
-    
+
     const loadedMembers = parsed.members.map((m: any) => ({
       keypair: Keypair.fromSecret(m.secret),
       identity: m.identity,
@@ -816,10 +827,10 @@ export default function CircleScreen({ initialState = null, onExit }: CircleScre
       pending: false,
     }));
     setMembers(loadedMembers);
-    
+
     const newTree = MerkleTree.create(
       LEVELS,
-      loadedMembers.map((m: any) => m.identity.commitment)
+      loadedMembers.map((m: any) => m.identity.commitment),
     );
     setTree(newTree);
 
@@ -840,15 +851,19 @@ export default function CircleScreen({ initialState = null, onExit }: CircleScre
   async function startCircle() {
     setError(null);
     setCirclePhase("loading");
-    setBusy(
-      "Generating a fresh admin + 5 member identities and funding via friendbot…",
-    );
+    setBusy("Generating a fresh admin + 5 member identities and funding via friendbot…");
     try {
       const [{ Keypair }, client] = await Promise.all([
         import("@stellar/stellar-sdk"),
-        import("@sharibo/client")
+        import("@sharibo/client"),
       ]);
-      const { generateIdentity, MerkleTree, verificationKeyToContractFormat, connect, createCircle } = client;
+      const {
+        generateIdentity,
+        MerkleTree,
+        verificationKeyToContractFormat,
+        connect,
+        createCircle,
+      } = client;
 
       setBusy(t("busy.generating"));
       const adminKp = Keypair.random();
@@ -867,11 +882,12 @@ export default function CircleScreen({ initialState = null, onExit }: CircleScre
       );
 
       setBusy(t("busy.creating"));
-      const vkJson = await fetch("/circuits/verification_key.json").then((r) =>
-        r.json(),
-      );
+      const vkJson = await fetch("/circuits/verification_key.json").then((r) => r.json());
       const vk = verificationKeyToContractFormat(vkJson);
-      const adminClient = await connect({ ...NETWORK, onEvent: (e) => setEvents(prev => [...prev, e]) }, adminKp);
+      const adminClient = await connect(
+        { ...NETWORK, onEvent: (e) => setEvents((prev) => [...prev, e]) },
+        adminKp,
+      );
       const { result: newCircleId } = await createCircle(adminClient, {
         admin: adminKp.publicKey(),
         token: TOKEN,
@@ -907,40 +923,28 @@ export default function CircleScreen({ initialState = null, onExit }: CircleScre
     try {
       const [{ Keypair }, { connect, fund }] = await Promise.all([
         import("@stellar/stellar-sdk"),
-        import("@sharibo/client")
+        import("@sharibo/client"),
       ]);
       const m = members[i];
       await fundWithFriendbot(m.keypair.publicKey());
-      
+
       // Set optimistic pending state
-      setMembers((prev) =>
-        prev.map((mm, idx) =>
-          idx === i ? { ...mm, pending: true } : mm,
-        ),
-      );
-      
+      setMembers((prev) => prev.map((mm, idx) => (idx === i ? { ...mm, pending: true } : mm)));
+
       const memberClient = await connect(NETWORK, m.keypair);
       const { hash } = await fund(memberClient, {
         circleId,
         from: m.keypair.publicKey(),
       });
-      
+
       // Sync with on-chain state after submission
       await syncFundingState();
-      
+
       // Update fund hash for the successful transaction
-      setMembers((prev) =>
-        prev.map((mm, idx) =>
-          idx === i ? { ...mm, fundHash: hash } : mm,
-        ),
-      );
+      setMembers((prev) => prev.map((mm, idx) => (idx === i ? { ...mm, fundHash: hash } : mm)));
     } catch (e) {
       // Clear pending state on error
-      setMembers((prev) =>
-        prev.map((mm, idx) =>
-          idx === i ? { ...mm, pending: false } : mm,
-        ),
-      );
+      setMembers((prev) => prev.map((mm, idx) => (idx === i ? { ...mm, pending: false } : mm)));
       setError(toUiError(e, t));
     } finally {
       setBusy(null);
@@ -958,14 +962,14 @@ export default function CircleScreen({ initialState = null, onExit }: CircleScre
       }
 
       const networkRes = await getNetworkDetails();
-      
+
       // Check for network mismatch between wallet and app config
       const mismatch = checkNetworkMatch(networkRes.network, NETWORK.networkPassphrase);
       if (mismatch) {
         throw new Error(
           `Your Freighter wallet is connected to ${mismatch.walletNetwork}, ` +
-          `but this app is configured for ${mismatch.appNetwork}. ` +
-          `Please open Freighter, click the network selector in the upper right, and switch to ${mismatch.appNetwork}.`
+            `but this app is configured for ${mismatch.appNetwork}. ` +
+            `Please open Freighter, click the network selector in the upper right, and switch to ${mismatch.appNetwork}.`,
         );
       }
 
@@ -974,38 +978,37 @@ export default function CircleScreen({ initialState = null, onExit }: CircleScre
       if (!pubKey) {
         throw new Error(t("error.getAddress"));
       }
-      
+
       const freighterSigner = {
         publicKey: pubKey,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         signTransaction: async (txXdr: string, opts?: any) => {
           // Re-check network before signing to catch mid-session network switches
           const currentNetworkRes = await getNetworkDetails();
-          const currentMismatch = checkNetworkMatch(currentNetworkRes.network, NETWORK.networkPassphrase);
+          const currentMismatch = checkNetworkMatch(
+            currentNetworkRes.network,
+            NETWORK.networkPassphrase,
+          );
           if (currentMismatch) {
             throw new Error(
               `Your Freighter wallet is connected to ${currentMismatch.walletNetwork}, ` +
-              `but this app is configured for ${currentMismatch.appNetwork}. ` +
-              `Please open Freighter, click the network selector in the upper right, and switch to ${currentMismatch.appNetwork}.`
+                `but this app is configured for ${currentMismatch.appNetwork}. ` +
+                `Please open Freighter, click the network selector in the upper right, and switch to ${currentMismatch.appNetwork}.`,
             );
           }
 
           const signedRes = await freighterSignTx(txXdr, {
-            networkPassphrase: currentNetworkRes.networkPassphrase
+            networkPassphrase: currentNetworkRes.networkPassphrase,
           });
           if (signedRes.error) {
             throw new Error(signedRes.error.toString());
           }
           return signedRes.signedTxXdr;
-        }
+        },
       };
 
       // Set optimistic pending state
-      setMembers((prev) =>
-        prev.map((mm, idx) =>
-          idx === i ? { ...mm, pending: true } : mm,
-        ),
-      );
+      setMembers((prev) => prev.map((mm, idx) => (idx === i ? { ...mm, pending: true } : mm)));
 
       const { connect, fund } = await import("@sharibo/client");
       const memberClient = await connect(NETWORK, freighterSigner);
@@ -1016,18 +1019,14 @@ export default function CircleScreen({ initialState = null, onExit }: CircleScre
 
       // Sync with on-chain state after submission
       await syncFundingState();
-      
+
       // Update fund hash and freighter key for the successful transaction
       setMembers((prev) =>
         prev.map((mm, idx) => (idx === i ? { ...mm, fundHash: hash, freighterKey: pubKey } : mm)),
       );
     } catch (e) {
       // Clear pending state on error
-      setMembers((prev) =>
-        prev.map((mm, idx) =>
-          idx === i ? { ...mm, pending: false } : mm,
-        ),
-      );
+      setMembers((prev) => prev.map((mm, idx) => (idx === i ? { ...mm, pending: false } : mm)));
       setError(getErrorMessage(e));
     } finally {
       setBusy(null);
@@ -1048,10 +1047,18 @@ export default function CircleScreen({ initialState = null, onExit }: CircleScre
     setRejection(null);
     setBusy(t("busy.claiming"));
     try {
-      const [{ Keypair }, { computeExternalNullifier, generateProof, verifyProofLocally, connect, claim, getCircle, hasClaimed }] = await Promise.all([
-        import("@stellar/stellar-sdk"),
-        import("@sharibo/client")
-      ]);
+      const [
+        { Keypair },
+        {
+          computeExternalNullifier,
+          generateProof,
+          verifyProofLocally,
+          connect,
+          claim,
+          getCircle,
+          hasClaimed,
+        },
+      ] = await Promise.all([import("@stellar/stellar-sdk"), import("@sharibo/client")]);
 
       if (signal.aborted) return;
       const claimant = members[claimantIndex];
@@ -1106,7 +1113,10 @@ export default function CircleScreen({ initialState = null, onExit }: CircleScre
 
       if (signal.aborted) return;
       setClaimStage("submitting");
-      const adminClient = await connect({ ...NETWORK, onEvent: (e) => setEvents(prev => [...prev, e]) }, admin);
+      const adminClient = await connect(
+        { ...NETWORK, onEvent: (e) => setEvents((prev) => [...prev, e]) },
+        admin,
+      );
       const { hash } = await claim(adminClient, {
         circleId,
         recipient: recipient.publicKey(),
@@ -1150,20 +1160,23 @@ export default function CircleScreen({ initialState = null, onExit }: CircleScre
     try {
       const [{ Keypair }, { connect, fund, computeExternalNullifier, claim }] = await Promise.all([
         import("@stellar/stellar-sdk"),
-        import("@sharibo/client")
+        import("@sharibo/client"),
       ]);
       // Fund round `round` again so this exercises the nullifier-reuse
       // check specifically, not just "the pot is empty" — the same
       // proof's nullifier gets rejected even against a fresh, funded round.
-      const adminClient = await connect({ ...NETWORK, onEvent: (e) => setEvents(prev => [...prev, e]) }, admin);
+      const adminClient = await connect(
+        { ...NETWORK, onEvent: (e) => setEvents((prev) => [...prev, e]) },
+        admin,
+      );
       for (const m of members) {
-        const memberClient = await connect({ ...NETWORK, onEvent: (e) => setEvents(prev => [...prev, e]) }, m.keypair);
+        const memberClient = await connect(
+          { ...NETWORK, onEvent: (e) => setEvents((prev) => [...prev, e]) },
+          m.keypair,
+        );
         await fund(memberClient, { circleId, from: m.keypair.publicKey() });
       }
-      const freshExternalNullifier = await computeExternalNullifier(
-        circleId,
-        BigInt(round),
-      );
+      const freshExternalNullifier = await computeExternalNullifier(circleId, BigInt(round));
 
       setBusy(t("busy.replaying"));
       await claim(adminClient, {
@@ -1191,22 +1204,22 @@ export default function CircleScreen({ initialState = null, onExit }: CircleScre
   async function doCancelCircle() {
     if (!admin || circleId === null) return;
     setError(null);
-    
+
     const refundCount = onChainContributors.length;
     const refundTotal = (Number(pot) / 1e7).toFixed(1);
-    
+
     const confirmed = window.confirm(
-      t("cancel.confirmation", { count: refundCount, total: refundTotal })
+      t("cancel.confirmation", { count: refundCount, total: refundTotal }),
     );
-    
+
     if (!confirmed) return;
-    
+
     setBusy(t("cancel.busy"));
     try {
       const { connect, cancelCircle } = await import("@sharibo/client");
       const adminClient = await connect(NETWORK, admin);
       await cancelCircle(adminClient, { circleId });
-      
+
       // Sync with on-chain state after cancellation
       await syncFundingState();
     } catch (e) {
@@ -1276,17 +1289,17 @@ export default function CircleScreen({ initialState = null, onExit }: CircleScre
           </>
         ) : (
           <>
-            <MemberRing members={members.map(m => ({ funded: m.funded, pending: m.pending }))} revealed={!!claimResult} />
+            <MemberRing
+              members={members.map((m) => ({ funded: m.funded, pending: m.pending }))}
+              revealed={!!claimResult}
+            />
 
             <div className={styles.potBarWrap}>
-              <div
-                className="pot-bar"
-                style={{ width: `${(fundedCount / CIRCLE_SIZE) * 100}%` }}
-              />
+              <div className="pot-bar" style={{ width: `${(fundedCount / CIRCLE_SIZE) * 100}%` }} />
             </div>
             <p className="pot-label">
-              pot: {(Number(pot) / 1e7).toFixed(1)} / {contributionXlm * CIRCLE_SIZE} XLM ·
-              round {round}
+              pot: {(Number(pot) / 1e7).toFixed(1)} / {contributionXlm * CIRCLE_SIZE} XLM · round{" "}
+              {round}
               {feeBps > 0 &&
                 ` · ${t("pot.fee", {
                   feePercent: (feeBps / 100).toString(),
@@ -1295,68 +1308,77 @@ export default function CircleScreen({ initialState = null, onExit }: CircleScre
               {cancelled && ` · ${t("cancel.cancelled")}`}
             </p>
 
-        {cancelled && (
-          <div className="callout" style={{ backgroundColor: "var(--color-warning-bg)", color: "var(--color-warning-text)" }}>
-            <strong>{t("cancel.cancelled")}</strong>
-            <p>{t("cancel.cancelledMessage")}</p>
-          </div>
-        )}
+            {cancelled && (
+              <div
+                className="callout"
+                style={{
+                  backgroundColor: "var(--color-warning-bg)",
+                  color: "var(--color-warning-text)",
+                }}
+              >
+                <strong>{t("cancel.cancelled")}</strong>
+                <p>{t("cancel.cancelledMessage")}</p>
+              </div>
+            )}
 
-        {!cancelled && admin && (
-          <div className="row" style={{ justifyContent: "flex-end", marginTop: "1rem" }}>
-            <button
-              className="btn btn-danger btn-small"
-              disabled={!!busy || onChainContributors.length === 0}
-              onClick={doCancelCircle}
-              title="Cancel this circle and refund all contributors"
-            >
-              {t("cancel.title")}
-            </button>
-          </div>
-        )}
-
-        <h2>Fund</h2>
-        <div className={styles.members}>
-          {members.map((m, i) => (
-            <div key={i} className={`member ${m.funded ? "funded" : ""} ${m.pending ? "pending" : ""}`}>
-              <span className="member-addr">
-                {t("fund.memberLabel", { index: i + 1 })} · {short(m.keypair.publicKey())}
-                <CopyButton
-                  value={m.keypair.publicKey()}
-                  label={t("fund.memberAddressLabel", { index: i + 1 })}
-                />
-              </span>
-              {m.pending ? (
-                <span className="pending-indicator">⟳ submitting…</span>
-              ) : m.funded ? (
-                <a
-                  className={styles.link}
-                  href={explorerTx(m.fundHash!)}
-                  target="_blank"
-                  rel="noreferrer"
+            {!cancelled && admin && (
+              <div className="row" style={{ justifyContent: "flex-end", marginTop: "1rem" }}>
+                <button
+                  className="btn btn-danger btn-small"
+                  disabled={!!busy || onChainContributors.length === 0}
+                  onClick={doCancelCircle}
+                  title="Cancel this circle and refund all contributors"
                 >
-                  {t("fund.fundedLink")}
-                </a>
-              ) : (
-                <div className={styles.row}>
-                  <button
-                    className={`${styles.btn} ${styles.btnSmall}`}
-                    disabled={!online || !!busy || round > 0}
-                    onClick={() => fundMember(i)}
-                  >
-                    {t("fund.demoButton", { amount: contributionXlm })}
-                  </button>
-                  {hasFreighter && (
-                    <button
-                      className={`${styles.btn} ${styles.btnSmall}`}
-                      disabled={!online || !!busy || round > 0}
-                      onClick={() => fundWithFreighter(i)}
+                  {t("cancel.title")}
+                </button>
+              </div>
+            )}
+
+            <h2>Fund</h2>
+            <div className={styles.members}>
+              {members.map((m, i) => (
+                <div
+                  key={i}
+                  className={`member ${m.funded ? "funded" : ""} ${m.pending ? "pending" : ""}`}
+                >
+                  <span className="member-addr">
+                    {t("fund.memberLabel", { index: i + 1 })} · {short(m.keypair.publicKey())}
+                    <CopyButton
+                      value={m.keypair.publicKey()}
+                      label={t("fund.memberAddressLabel", { index: i + 1 })}
+                    />
+                  </span>
+                  {m.pending ? (
+                    <span className="pending-indicator">⟳ submitting…</span>
+                  ) : m.funded ? (
+                    <a
+                      className={styles.link}
+                      href={explorerTx(m.fundHash!)}
+                      target="_blank"
+                      rel="noreferrer"
                     >
-                      {t("fund.freighterButton")}
-                    </button>
+                      {t("fund.fundedLink")}
+                    </a>
+                  ) : (
+                    <div className={styles.row}>
+                      <button
+                        className={`${styles.btn} ${styles.btnSmall}`}
+                        disabled={!online || !!busy || round > 0}
+                        onClick={() => fundMember(i)}
+                      >
+                        {t("fund.demoButton", { amount: contributionXlm })}
+                      </button>
+                      {hasFreighter && (
+                        <button
+                          className={`${styles.btn} ${styles.btnSmall}`}
+                          disabled={!online || !!busy || round > 0}
+                          onClick={() => fundWithFreighter(i)}
+                        >
+                          {t("fund.freighterButton")}
+                        </button>
+                      )}
+                    </div>
                   )}
-                </div>
-              )}
                 </div>
               ))}
             </div>
@@ -1369,9 +1391,8 @@ export default function CircleScreen({ initialState = null, onExit }: CircleScre
               {t("claim.heading")}
             </h2>
             <p className={styles.sub}>
-              Pick which member is claiming this round — the proof will show the
-              contract that they're a real member <em>without</em> revealing
-              which one.
+              Pick which member is claiming this round — the proof will show the contract that
+              they're a real member <em>without</em> revealing which one.
             </p>
             <div className="row">
               {members.map((m, i) => (
@@ -1381,9 +1402,10 @@ export default function CircleScreen({ initialState = null, onExit }: CircleScre
                     checked={claimantIndex === i}
                     onChange={() => setClaimantIndex(i)}
                     disabled={!!busy || !!m.ineligible}
-                    title={m.ineligible ? m.ineligibleReason ?? "Ineligible to claim" : undefined}
+                    title={m.ineligible ? (m.ineligibleReason ?? "Ineligible to claim") : undefined}
                   />
-                  member {i + 1}{m.ineligible ? " (ineligible)" : ""}
+                  member {i + 1}
+                  {m.ineligible ? " (ineligible)" : ""}
                 </label>
               ))}
             </div>
@@ -1396,7 +1418,9 @@ export default function CircleScreen({ initialState = null, onExit }: CircleScre
                 {/* Constraint count: update this AND circuits/README.md if the circuit changes. */}
                 Groth16 · BLS12-381 · 3,757 constraints · proving locally in your browser, nothing
                 sent anywhere until the proof is done
-                {isProving && proveElapsedSeconds !== null ? ` · proving… ${proveElapsedSeconds}s` : ""}
+                {isProving && proveElapsedSeconds !== null
+                  ? ` · proving… ${proveElapsedSeconds}s`
+                  : ""}
               </p>
             )}
           </>
@@ -1409,10 +1433,7 @@ export default function CircleScreen({ initialState = null, onExit }: CircleScre
             </h2>
             <p>
               {t("result.recipientIntro")} <code>{short(claimResult.recipient)}</code>
-              <CopyButton
-                value={claimResult.recipient}
-                label={t("result.recipientLabel")}
-              />{" "}
+              <CopyButton value={claimResult.recipient} label={t("result.recipientLabel")} />{" "}
               <a href={explorerAccount(claimResult.recipient)} target="_blank" rel="noreferrer">
                 ↗
               </a>{" "}
@@ -1428,20 +1449,18 @@ export default function CircleScreen({ initialState = null, onExit }: CircleScre
             </a>
             <CopyButton value={claimResult.hash} label="claim transaction hash" />
             <p className={styles.callout}>
-              Compare the 5 funding transactions above to this claim — same
-              contract, no shared address, no visible link.
+              Compare the 5 funding transactions above to this claim — same contract, no shared
+              address, no visible link.
             </p>
             <p className="techline">
-              proof generated in {(claimResult.proofDurationMs / 1000).toFixed(1)}s ·
-              local verify {claimResult.verifyTimeMs.toFixed(0)}ms ✓
+              proof generated in {(claimResult.proofDurationMs / 1000).toFixed(1)}s · local verify{" "}
+              {claimResult.verifyTimeMs.toFixed(0)}ms ✓
             </p>
             <button
               className={`${styles.btn} ${styles.btnDanger}`}
               disabled={!online || !!busy || (!!rejection && nullifierClaimed)}
               onClick={claimAgain}
-              title={
-                rejection && nullifierClaimed ? t("result.claimAgainTitle") : undefined
-              }
+              title={rejection && nullifierClaimed ? t("result.claimAgainTitle") : undefined}
             >
               {busy ?? t("result.claimAgainButton")}
             </button>
@@ -1476,7 +1495,12 @@ export default function CircleScreen({ initialState = null, onExit }: CircleScre
                 </button>
                 <p className={styles.fineprint}>
                   Circle #{circleId?.toString()} stays on-chain forever —{" "}
-                  <a className={styles.link} href={explorerContract()} target="_blank" rel="noreferrer">
+                  <a
+                    className={styles.link}
+                    href={explorerContract()}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
                     view on explorer ↗
                   </a>
                   {t("result.newCircleOutro")}

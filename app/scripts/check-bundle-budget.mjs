@@ -69,7 +69,9 @@ if (!existsSync(manifestPath)) {
 const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
 const entryKey = Object.keys(manifest).find((key) => key.endsWith("index.html"));
 if (!entryKey) {
-  fail("build manifest has no index.html entry — is `build.manifest: true` still set in vite.config.ts?");
+  fail(
+    "build manifest has no index.html entry — is `build.manifest: true` still set in vite.config.ts?",
+  );
 }
 
 /** Every chunk reachable from `key` by following static `imports` only. */
