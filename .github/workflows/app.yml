@@ -59,3 +59,32 @@ jobs:
       - name: App test suite
         working-directory: app
         run: npm test
+
+  e2e:
+    name: app end-to-end (playwright, chromium)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Build the client SDK
+        run: npm run build --workspace=packages/client
+
+      - name: Install Playwright chromium
+        working-directory: app
+        run: npx playwright install --with-deps chromium
+
+      # Full demo flow (open page → create circle → fund 5 members → prove →
+      # claim) in headless Chromium against a local Vite dev server. Soroban
+      # RPC and Friendbot are mocked so this spends nothing; Groth16 proving
+      # is still real (wasm + zkey in the browser).
+      - name: Playwright e2e suite
+        working-directory: app
+        run: npm run test:e2e
